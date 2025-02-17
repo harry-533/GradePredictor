@@ -4,23 +4,13 @@ import numpy as np
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app, resources={r"/predict": {"origins": "https://gradepredictor.vercel.app", "methods": ["OPTIONS", "POST"], "allow_headers": ["Content-Type"]}})
-
-
+CORS(app, resources={r"/*": {"origins": "https://gradepredictor.vercel.app"}})
 
 model = joblib.load("model.pkl")
 scaler = joblib.load("scaler.pkl")
 
-@app.route("/predict", methods=["POST", "OPTIONS"])
+@app.route("/predict", methods=["POST"])
 def predict():
-    if request.method == "OPTIONS":
-        # Handle preflight request
-        response = jsonify({"message": "CORS preflight handled"})
-        response.headers["Access-Control-Allow-Origin"] = "https://gradepredictor.vercel.app"
-        response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-        return response
-        
     try:
         data = request.json 
         features = []
@@ -41,10 +31,14 @@ def predict():
         prediction = model.predict(features)
         prediction = prediction.tolist()
 
-        return jsonify({"predicted_grade": prediction})
+        response = jsonify({"predicted_grade": prediction})
+        response.headers.add('Access-Control-Allow-Origin', '*')  # Allow all origins
+        return response
 
     except Exception as e:
-        return jsonify({"error": str(e)})
+        response = jsonify({"error": str(e)})
+        response.headers.add('Access-Control-Allow-Origin', '*')  # Allow all origins
+        return response
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
