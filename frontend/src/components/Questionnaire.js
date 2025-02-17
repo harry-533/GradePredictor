@@ -53,7 +53,7 @@ function Questionnaire() {
 
     const handleSubmit = async () => {
         try {
-            const response = await fetch("https://gradepredictor.onrender.com", {
+            const response = await fetch("https://gradepredictor.onrender.com/predict", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
