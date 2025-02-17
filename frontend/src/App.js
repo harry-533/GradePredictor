@@ -8,7 +8,7 @@ function App() {
     const [data, setData] = useState("");
 
     useEffect(() => {
-        axios.get("https://gradepredictor.onrender.com/api/data")
+        axios.get("https://gradepredictor.onrender.com/predict")
             .then(response => setData(response.data.data))
             .catch(error => console.error("Error fetching data:", error));
     }, []);
