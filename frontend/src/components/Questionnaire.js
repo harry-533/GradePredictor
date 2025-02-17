@@ -24,6 +24,7 @@ const questions = [
     { question: "What is your gender?", type: "buttons", short: "gender", options: ["Male", "Female"] }
 ];
 
+
 function Questionnaire() {
     const navigate = useNavigate();
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
