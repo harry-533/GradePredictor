@@ -4,14 +4,23 @@ import numpy as np
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://gradepredictor.vercel.app", "methods": ["OPTIONS", "POST"], "allow_headers": ["Content-Type"]}})
+CORS(app, resources={r"/predict": {"origins": "https://gradepredictor.vercel.app", "methods": ["OPTIONS", "POST"], "allow_headers": ["Content-Type"]}})
+
 
 
 model = joblib.load("model.pkl")
 scaler = joblib.load("scaler.pkl")
 
-@app.route("/predict", methods=["POST"])
+@app.route("/predict", methods=["POST", "OPTIONS"])
 def predict():
+    if request.method == "OPTIONS":
+        # Handle preflight request
+        response = jsonify({"message": "CORS preflight handled"})
+        response.headers["Access-Control-Allow-Origin"] = "https://gradepredictor.vercel.app"
+        response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        return response
+        
     try:
         data = request.json 
         features = []
@@ -30,8 +39,6 @@ def predict():
         features[:, columns_to_scale] = scaler.transform(features[:, columns_to_scale])
 
         prediction = model.predict(features)
-        # prediction = np.array(prediction).astype(float).reshape(-1, 1)
-        # prediction = scaler.inverse_transform(prediction)
         prediction = prediction.tolist()
 
         return jsonify({"predicted_grade": prediction})
