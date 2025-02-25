@@ -4,7 +4,7 @@ import numpy as np
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "https://gradepredictor.vercel.app"}})
 
 model = joblib.load("model.pkl")
 scaler = joblib.load("scaler.pkl")
@@ -29,14 +29,16 @@ def predict():
         features[:, columns_to_scale] = scaler.transform(features[:, columns_to_scale])
 
         prediction = model.predict(features)
-        # prediction = np.array(prediction).astype(float).reshape(-1, 1)
-        # prediction = scaler.inverse_transform(prediction)
         prediction = prediction.tolist()
 
-        return jsonify({"predicted_grade": prediction})
+        response = jsonify({"predicted_grade": prediction})
+        response.headers.add('Access-Control-Allow-Origin', '*')  # Allow all origins
+        return response
 
     except Exception as e:
-        return jsonify({"error": str(e)})
+        response = jsonify({"error": str(e)})
+        response.headers.add('Access-Control-Allow-Origin', '*')  # Allow all origins
+        return response
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))

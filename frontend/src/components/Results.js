@@ -13,7 +13,7 @@ function Results() {
                 <h1 className="grade">{predictedGrade}%</h1>
             </div>
         </div>
-    );
+    ); 
 }
 
 export default Results;
