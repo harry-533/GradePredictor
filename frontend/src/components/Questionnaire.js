@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; 
 import '../questionnaire.css';
 
+// All of the questions are used to get all the data in the original dataset
 const questions = [
     { question: "How many hours do you study per week?", short: "study", type: "number" },
     { question: "What is your current attendance?", short: "attendance", type: "number" },
@@ -24,12 +25,17 @@ const questions = [
     { question: "What is your gender?", type: "buttons", short: "gender", options: ["Male", "Female"] }
 ];
 
+// The page that displays the questions
 function Questionnaire() {
+    // Allows navigation between pages
     const navigate = useNavigate();
+    // Tracks the index of the current question, then stores the anwsers in key value pairs
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState({});
+    // Tracks if the answers are being submitted
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // When answers changes it checks if it is ready to be submitted
     useEffect(() => {
         if (isSubmitting) {
             handleSubmit();
@@ -37,12 +43,16 @@ function Questionnaire() {
         }
     }, [answers]);
 
+    
     const handleAnswer = (answer) => {
         setAnswers((prevAnswers) => {
+            // Updates answers for the given anwser and the short question as the key
             const updatedAnswers = { ...prevAnswers, [questions[currentQuestionIndex].short]: answer };
 
+            // If there are more questions, increase the index to the next question
             if (currentQuestionIndex < questions.length - 1) {
                 setCurrentQuestionIndex(currentQuestionIndex + 1);
+            // If there are no more questions it can be submitted
             } else {
                 setIsSubmitting(true);
             }
@@ -51,8 +61,10 @@ function Questionnaire() {
         });
     };
 
+    // Handles the submitting of data to the backend
     const handleSubmit = async () => {
         try {
+            // Sends the answers too the backend so that The prediction can be made
             const response = await fetch("https://gradepredictor.onrender.com/predict", {
                 method: "POST",
                 headers: {
@@ -61,9 +73,11 @@ function Questionnaire() {
                 body: JSON.stringify(answers),
             });
 
+            // The response (grade prediction) is stored and rounded, ready to be displayed on the result page
             const data = await response.json();
             const prediction = Math.round(data.predicted_grade)
             
+            // Navigates to the result page sending the prediction
             navigate("/results", { state: { predictedGrade: prediction } });
         } catch (error) {
             console.error("Error:", error);
@@ -72,16 +86,19 @@ function Questionnaire() {
 
     const currentQuestion = questions[currentQuestionIndex];
 
+    // The HTML of the question page
     return (
         <div className="wrapper">
             <div className="container">
                 <h2 className="question">{currentQuestion.question}</h2>
                 
+                {/* if the question takes a number as input displays a textbox */}
                 {currentQuestion.type === "number" ? (
                     <input
                         type="text"
                         className="textbox"
                         onKeyDown={(e) => {
+                            // Only accepts a integer from the user, anything else is cleared and requires resubmission
                             if (e.key === "Enter") {
                                 if (!isNaN(Number(e.target.value))) {
                                     handleAnswer(parseInt(e.target.value));
@@ -95,6 +112,7 @@ function Questionnaire() {
                             }
                         }}
                     />
+                // Rest of the questions are buttons that contain the possible options
                 ) : currentQuestion.type === "buttons" ? (
                     <div className="buttons">
                         {currentQuestion.options.map((option) => (
